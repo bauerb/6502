@@ -6,7 +6,7 @@
 #include "core/memory.h"
 
 /*----------------------------------------------------------------------------*/
-struct Memory* memory_create(uint32_t size, uint8_t readonly)
+struct Memory* memory_create(uint32_t size, uint32_t baseaddr, uint8_t readonly)
 {
   struct Memory *mem = NULL;
 
@@ -19,17 +19,18 @@ struct Memory* memory_create(uint32_t size, uint8_t readonly)
   }
 
   log_debug("Memory: Try to allocate 0x%04x bytes of memory", size);
-  mem->baseaddr = malloc(sizeof(uint8_t) * size);
-  if(!mem->baseaddr)
+  mem->mem = malloc(sizeof(uint8_t) * size);
+  if(!mem->mem)
   {
     log_error("Could not allocate memory for struct Memory");
     free(mem);
     return NULL;
   }
 
-  memset(mem->baseaddr, 0, size);
+  memset(mem->mem, 0, size);
   mem->readonly = readonly;
   mem->size = size;
+  mem->baseaddr = baseaddr;
 
   return mem;
 }
@@ -39,9 +40,9 @@ void memory_destroy(struct Memory **memory)
 {
   if(*memory)
   {
-    if((*memory)->baseaddr)
+    if((*memory)->mem)
     {
-      free((*memory)->baseaddr);
+      free((*memory)->mem);
     }
     free(*memory);
     *memory = NULL;
@@ -49,13 +50,53 @@ void memory_destroy(struct Memory **memory)
 }
 
 /*----------------------------------------------------------------------------*/
-int memory_readByte(struct Memory* memory, uint32_t addr)
+int memory_readByte(struct Memory* mem, uint32_t addr, uint8_t *data)
 {
+  if(mem == NULL)
+  {
+    log_error("Memory is NULL");
+    return -1;
+  }
+  if(mem->mem == NULL)
+  {
+    log_error("Memory not initialized");
+    return -1;
+  }
+  if(addr < mem->baseaddr || addr > mem->baseaddr + mem->size)
+  {
+    log_error("Address out of memory range addr 0x%04x baseaddr 0x%04x size 0x%04x", addr, mem->baseaddr, mem->size);
+    return -1;
+  }
+
+  *data = mem->mem[mem->baseaddr - addr];
+  log_debug("Read memory from addr 0x%04x data 0x%02x", addr, *data);
+
   return 0;
 }
 
 /*----------------------------------------------------------------------------*/
-int memory_writeByte(struct Memory* memory, uint32_t addr, uint8_t data)
+int memory_writeByte(struct Memory* mem, uint32_t addr, uint8_t data)
 {
+  log_debug("Try to read from address 0x%04x baseaddr 0x%04x size 0x%04x", addr, mem->baseaddr, mem->size);
+
+  if(mem == NULL)
+  {
+    log_error("Memory is NULL");
+    return -1;
+  }
+  if(mem->mem == NULL)
+  {
+    log_error("Memory not initialized");
+    return -1;
+  }
+  if(addr < mem->baseaddr || addr > mem->baseaddr + mem->size)
+  {
+    log_error("Address out of memory range addr 0x%04x baseaddr 0x%04x size 0x%04x", addr, mem->baseaddr, mem->size);
+    return -1;
+  }
+
+  mem->mem[mem->baseaddr - addr] = data;
+  log_debug("Read memory from addr 0x%04x data 0x%02x", addr, data);
+
   return 0;
 }
