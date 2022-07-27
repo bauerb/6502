@@ -51,7 +51,7 @@ int memory_t0003()
   int ret = 0;
   uint8_t data = 0;
 
-  mem = memory_create(0x8000, 0x8000, 1);
+  mem = memory_create(0x8000, 0x0, 1);
   ASSERT("Failed to create memory", mem!=NULL);
 
   log_unit("Write 0xff to address 0x0100");
@@ -76,16 +76,16 @@ int memory_t0004()
   int ret = 0;
   uint8_t data = 0;
 
-  mem = memory_create(0x8000, 0x0000, 1);
+  mem = memory_create(0x8000, 0x8000, 1);
   ASSERT("Failed to create memory", mem!=NULL);
 
   log_unit("Write to outside memory");
   ret = memory_writeByte(mem, 0x8100, 0xff);
-  ASSERT("Write to outside adress range", ret==1);
+  ASSERT("Write to outside adress range", ret==0);
 
   log_unit("Read from outside memory");
   ret = memory_readByte(mem, 0x8100, &data);
-  ASSERT("Read from outside adress range", ret==1);
+  ASSERT("Read from outside adress range", ret==0);
 
   memory_destroy(&mem);
   ASSERT("Failed to destroy memory", mem==NULL);

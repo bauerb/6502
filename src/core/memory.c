@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "util/log.h"
 
@@ -26,6 +27,8 @@ struct Memory* memory_create(uint32_t size, uint32_t baseaddr, uint8_t readonly)
     free(mem);
     return NULL;
   }
+
+  log_info("Create Memory size 0x%04x and baseaddr 0x%04x", size, baseaddr);
 
   memset(mem->mem, 0, size);
   mem->readonly = readonly;
@@ -68,7 +71,6 @@ int memory_readByte(struct Memory* mem, uint32_t addr, uint8_t *data)
     return -1;
   }
 
-  log_trace("Try to read memory from addr 0x%04x baseaddr 0x%04x size 0x%04x", addr, mem->baseaddr, mem->size);
   *data = mem->mem[addr - mem->baseaddr];
   log_debug("Read memory from addr 0x%04x data 0x%02x", addr, *data);
 
@@ -78,7 +80,7 @@ int memory_readByte(struct Memory* mem, uint32_t addr, uint8_t *data)
 /*----------------------------------------------------------------------------*/
 int memory_writeByte(struct Memory* mem, uint32_t addr, uint8_t data)
 {
-  log_debug("Try to read from address 0x%04x baseaddr 0x%04x size 0x%04x", addr, mem->baseaddr, mem->size);
+  log_debug("Try to write data 0x%02x to address 0x%04x baseaddr 0x%04x size 0x%04x", data, addr, mem->baseaddr, mem->size);
 
   if(mem == NULL)
   {
@@ -96,8 +98,63 @@ int memory_writeByte(struct Memory* mem, uint32_t addr, uint8_t data)
     return -1;
   }
 
-  mem->mem[mem->baseaddr - addr] = data;
-  log_debug("Read memory from addr 0x%04x data 0x%02x", addr, data);
+  mem->mem[addr - mem->baseaddr] = data;
+  log_debug("Write data 0x%02x to addr 0x%04x", data, addr);
+
+  return 0;
+}
+
+/*----------------------------------------------------------------------------*/
+int memory_dump(struct Memory* mem, uint32_t start, uint32_t end)
+{
+  int line = 0;
+  int col = 0;
+
+  if(mem == NULL)
+  {
+    log_error("Memory is NULL");
+    return -1;
+  }
+  if(mem->mem == NULL)
+  {
+    log_error("Memory not initialized");
+    return -1;
+  }
+  if(start > end || start < mem->baseaddr || start > mem->baseaddr + mem->size || end  > mem->baseaddr + mem->size)
+  {
+    log_error("Address out of memory range start 0x%04x end 0x%04x base 0x%04x size 0x%04x", start, end, mem->baseaddr, mem->size);
+    return -1;
+  }
+
+  log_dump("Hexdump from 0x%04x to 0x%04x\n", start, end);
+
+  for(line = 0; line * 16 < (end - start); line++)
+  {
+    log_dump("0x%04x: ", start + (line * 16));
+
+    for(col = 0; col < 16; col++)
+    {
+      log_dump("%02x ", mem->mem[start - mem->baseaddr + (line * 16) + col]);
+    }
+
+    log_dump(" | ");
+
+    for(col = 0; col < 16; col++)
+    {
+      if(isprint(mem->mem[start - mem->baseaddr + (line * 16) + col]) == 0)
+      {
+        log_dump(".");
+      }
+      else
+      {
+        log_dump("%c", mem->mem[start - mem->baseaddr + (line * 16) + col]);
+      }
+    }
+
+    log_dump(" | ");
+
+    log_dump("\n");
+  }
 
   return 0;
 }

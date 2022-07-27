@@ -17,4 +17,6 @@ void memory_destroy(struct Memory **memory);
 int memory_readByte(struct Memory* mem, uint32_t addr, uint8_t *data);
 int memory_writeByte(struct Memory* mem, uint32_t addr, uint8_t data);
 
+int memory_dump(struct Memory* mem, uint32_t start, uint32_t end);
+
 #endif /* MEMORY_H */

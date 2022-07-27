@@ -42,6 +42,7 @@ static struct {
 
 
 static const char *level_strings[] = {
+  "DUMP",
   "UNIT",
   "TRACE",
   "DEBUG",
@@ -53,6 +54,7 @@ static const char *level_strings[] = {
 
 #ifdef LOG_USE_COLOR
 static const char *level_colors[] = {
+  "", /* DUMMY */
   "\x1b[92m",
   "\x1b[94m",
   "\x1b[36m",
@@ -92,6 +94,13 @@ static void stdout_callback(log_Event *ev)
   fprintf(ev->udata, "\x1b[0m ");
 #endif
   fprintf(ev->udata, "\n");
+  fflush(ev->udata);
+}
+
+/*----------------------------------------------------------------------------*/
+static void stdout_dump_callback(log_Event *ev)
+{
+  vfprintf(ev->udata, ev->fmt, ev->ap);
   fflush(ev->udata);
 }
 
@@ -200,24 +209,35 @@ void log_log(int level, const char *file, int line, const char *fmt, ...)
   };
 
   lock();
-
-  if((!L.quiet && level >= L.level) || level == LOG_UNIT)
+  if(level == LOG_DUMP)
   {
-    init_event(&ev, stderr);
-    va_start(ev.ap, fmt);
-    stdout_callback(&ev);
-    va_end(ev.ap);
-  }
-
-  for(i = 0; i < MAX_CALLBACKS && L.callbacks[i].fn; i++)
-  {
-    Callback *cb = &L.callbacks[i];
-    if((level >= cb->level) || level == LOG_UNIT)
-    {
-      init_event(&ev, cb->udata);
+      init_event(&ev, stderr);
       va_start(ev.ap, fmt);
-      cb->fn(&ev);
+      stdout_dump_callback(&ev);
       va_end(ev.ap);
+
+      /* TODO: Callbacks */
+  }
+  else
+  {
+    if((!L.quiet && level >= L.level) || level == LOG_UNIT)
+    {
+      init_event(&ev, stderr);
+      va_start(ev.ap, fmt);
+      stdout_callback(&ev);
+      va_end(ev.ap);
+    }
+
+    for(i = 0; i < MAX_CALLBACKS && L.callbacks[i].fn; i++)
+    {
+      Callback *cb = &L.callbacks[i];
+      if((level >= cb->level) || level == LOG_UNIT)
+      {
+        init_event(&ev, cb->udata);
+        va_start(ev.ap, fmt);
+        cb->fn(&ev);
+        va_end(ev.ap);
+      }
     }
   }
 

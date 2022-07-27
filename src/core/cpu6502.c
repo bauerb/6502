@@ -360,6 +360,8 @@ static struct OpCodeLUT opcodes [] = {
   { ""   , 0, CPU6502_imp, CPU6502_xxx },
 };
 
+static uint8_t CPU6502_fetch(struct CPU6502 *cpu);
+
 /*----------------------------------------------------------------------------*/
 struct CPU6502* CPU6502_create(uint8_t (*read)(uint16_t), void (*write)(uint16_t, uint8_t))
 {
@@ -405,7 +407,6 @@ int CPU6502_reset(struct CPU6502 *cpu)
   cpu->Reg.Y = 0x0;
   cpu->Reg.X = 0x0;
   cpu->Reg.SP = 0x0;
-  cpu->Reg.PC = 0xFFFC;
 
   cpu->Reg.PSR.CARRY=0;
   cpu->Reg.PSR.ZERO=0;
@@ -416,15 +417,17 @@ int CPU6502_reset(struct CPU6502 *cpu)
   cpu->Reg.PSR.OVERFLOW=0;
   cpu->Reg.PSR.NEGATIVE=0;
 
-  cpu->curr_op = 0;
-
   cpu->cycles = 7;
   cpu->clock_count = 0;
 
+  cpu->opcode = 0;
   cpu->fetched = 0;
   cpu->temp = 0;
-  cpu->addr_abs = 0;
+  cpu->addr_abs = 0xFFFC;
   cpu->addr_rel = 0;
+
+  cpu->Reg.PCL = cpu->read(cpu->addr_abs);
+  cpu->Reg.PCH = cpu->read(cpu->addr_abs+1);
 
   return 0;
 }
@@ -434,14 +437,19 @@ int CPU6502_clock(struct CPU6502 *cpu)
 {
   if(cpu->cycles == 0)
   {
-    cpu->curr_op = cpu->read(cpu->Reg.PC);
+    uint8_t extra_cycles1 = 0;
+    uint8_t extra_cycles2 = 0;
+
+    cpu->opcode = cpu->read(cpu->Reg.PC);
     cpu->Reg.PC++;
-    cpu->cycles = opcodes[cpu->curr_op].cycles;
+    cpu->cycles = opcodes[cpu->opcode].cycles;
 
-    log_trace("Fetch op <%s> at 0x%04x", opcodes[cpu->curr_op].mnemonic, cpu->Reg.PC);
+    log_trace("OP <%s> at 0x%04x", opcodes[cpu->opcode].mnemonic, cpu->Reg.PC);
 
-    opcodes[cpu->curr_op].addrMode(cpu);
-    opcodes[cpu->curr_op].instruction(cpu);
+    extra_cycles1 = opcodes[cpu->opcode].addrMode(cpu);
+    extra_cycles2 = opcodes[cpu->opcode].instruction(cpu);
+
+    cpu->cycles += (extra_cycles1 & extra_cycles2);
   }
 
   cpu->cycles--;
@@ -476,10 +484,21 @@ int CPU6502_dumpStatus(struct CPU6502 *cpu)
   return 0;
 }
 
+/*----------------------------------------------------------------------------*/
+uint8_t CPU6502_fetch(struct CPU6502 *cpu)
+{
+  if(opcodes[cpu->opcode].addrMode != CPU6502_imp)
+  {
+    cpu->fetched = cpu->read(cpu->addr_abs);
+  }
+  return cpu->fetched;
+}
+
 /* Implied */
 uint8_t CPU6502_imp(struct CPU6502 *cpu)
 {
   log_trace("Addr mode: Implied");
+  cpu->fetched = cpu->Reg.A;
   return 0;
 }
 
@@ -487,6 +506,7 @@ uint8_t CPU6502_imp(struct CPU6502 *cpu)
 uint8_t CPU6502_imm(struct CPU6502 *cpu)
 {
   log_trace("Addr mode: Immediate");
+  cpu->addr_abs = cpu->Reg.PC++;
   return 0;
 }
 
@@ -573,398 +593,347 @@ uint8_t CPU6502_izy(struct CPU6502 *cpu)
 /* Add with Carry */
 uint8_t CPU6502_adc(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* AND */
 uint8_t CPU6502_and(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Arithmetic shift one CPU6502_bit left */
 uint8_t CPU6502_asl(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Branch on Carry clear */
 uint8_t CPU6502_bcc(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Branch on Carry set */
 uint8_t CPU6502_bcs(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Branch if equal */
 uint8_t CPU6502_beq(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Bit test */
 uint8_t CPU6502_bit(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Branch if reslut minus */
 uint8_t CPU6502_bmi(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Branch if not equal */
 uint8_t CPU6502_bne(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Branch if relult plus */
 uint8_t CPU6502_bpl(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Break */
 uint8_t CPU6502_brk(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Branch on overflow clear */
 uint8_t CPU6502_bvc(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Branch on overflow set */
 uint8_t CPU6502_bvs(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Clear carry flag */
 uint8_t CPU6502_clc(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Clear CPU6502_decimal mode */
 uint8_t CPU6502_cld(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Clear interrupt disable flag */
 uint8_t CPU6502_cli(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Clear overflow flag */
 uint8_t CPU6502_clv(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Compare memory CPU6502_and accumulator */
 uint8_t CPU6502_cmp(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Compare memory CPU6502_and X register */
 uint8_t CPU6502_cpx(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Compare memory CPU6502_and Y register */
 uint8_t CPU6502_cpy(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Decrement memory or accumulator by one */
 uint8_t CPU6502_dec(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Decrement X by one */
 uint8_t CPU6502_dex(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Decrement Y by one */
 uint8_t CPU6502_dey(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Exclusice or memory or accumulator by one */
 uint8_t CPU6502_eor(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Increment memory or accumulator by one */
 uint8_t CPU6502_inc(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Increment X register by one */
 uint8_t CPU6502_inx(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Increment Y register by one */
 uint8_t CPU6502_iny(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Jump to new location */
 uint8_t CPU6502_jmp(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Jump to new location saving return */
 uint8_t CPU6502_jsr(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Load accumulator with memory */
 uint8_t CPU6502_lda(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
+  CPU6502_fetch(cpu);
+  cpu->Reg.A = cpu->fetched;
+
+  if(cpu->Reg.A == 0x00) cpu->Reg.PSR.ZERO = 1;
+  if(cpu->Reg.A & 0x80) cpu->Reg.PSR.NEGATIVE = 1;
+  
   return 0;
 }
 
 /* Load X register with memory */
 uint8_t CPU6502_ldx(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Load Y register with memory */
 uint8_t CPU6502_ldy(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Logical shift one CPU6502_bit right memory or accumulator */
 uint8_t CPU6502_lsr(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* No operation */
 uint8_t CPU6502_nop(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Or memory with accumulator */
 uint8_t CPU6502_ora(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Push accumulator on stack */
 uint8_t CPU6502_pha(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Push processor status on stack */
 uint8_t CPU6502_php(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Pull accumulator from stack */
 uint8_t CPU6502_pla(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Pull processor status from stack */
 uint8_t CPU6502_plp(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Rotate one CPU6502_bit left memory or accumulator */
 uint8_t CPU6502_rol(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Rotate one CPU6502_bit right memory or accumulator */
 uint8_t CPU6502_ror(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Return from interrupt */
 uint8_t CPU6502_rti(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Return from subroutine */
 uint8_t CPU6502_rts(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Substract memory from accumulator with borrow (carry) */
 uint8_t CPU6502_sbc(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Set carry */
 uint8_t CPU6502_sec(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Set CPU6502_decimal mode */
 uint8_t CPU6502_sed(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Set interrupt flag */
 uint8_t CPU6502_sei(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Store accumulator in memory */
 uint8_t CPU6502_sta(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Store X register in memory */
 uint8_t CPU6502_stx(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Store Y register in memory */
 uint8_t CPU6502_sty(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Transfer the accumulator to the X register */
 uint8_t CPU6502_tax(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Transfer the accumulator to the Y register */
 uint8_t CPU6502_tay(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Transfer the stack pointer to the Y register */
 uint8_t CPU6502_tsx(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Transfer the X register the accumulator */
 uint8_t CPU6502_txa(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Transfer the X register the stack pointer */
 uint8_t CPU6502_txs(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Transfer the Y register the accumulator */
 uint8_t CPU6502_tya(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }
 
 /* Illegal OpCode */
 uint8_t CPU6502_xxx(struct CPU6502 *cpu)
 {
-  log_trace("OP: ");
   return 0;
 }

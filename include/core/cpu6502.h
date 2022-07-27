@@ -12,8 +12,8 @@ struct CPU6502
     union {
       struct
       {
-        uint8_t PCH;
         uint8_t PCL;
+        uint8_t PCH;
       };
       uint16_t PC;
     };
@@ -30,11 +30,10 @@ struct CPU6502
     } PSR;
   } Reg;
 
-  uint8_t curr_op;
-
   uint8_t  cycles;
   uint32_t clock_count;
 
+  uint8_t  opcode;
   uint8_t  fetched;
   uint16_t temp;
   uint16_t addr_abs;

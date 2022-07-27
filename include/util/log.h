@@ -29,6 +29,7 @@ typedef void (*log_LogFn)(log_Event *ev);
 typedef void (*log_LockFn)(bool lock, void *udata);
 
 enum LogLevel {
+  LOG_DUMP,
   LOG_UNIT,
   LOG_TRACE,
   LOG_DEBUG,
@@ -38,6 +39,7 @@ enum LogLevel {
   LOG_FATAL
 };
 
+#define log_dump(...)  log_log(LOG_DUMP,  __FILENAME__, __LINE__, __VA_ARGS__)
 #define log_unit(...)  log_log(LOG_UNIT,  __FILENAME__, __LINE__, __VA_ARGS__)
 #define log_trace(...) log_log(LOG_TRACE, __FILENAME__, __LINE__, __VA_ARGS__)
 #define log_debug(...) log_log(LOG_DEBUG, __FILENAME__, __LINE__, __VA_ARGS__)
