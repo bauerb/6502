@@ -68,7 +68,8 @@ int memory_readByte(struct Memory* mem, uint32_t addr, uint8_t *data)
     return -1;
   }
 
-  *data = mem->mem[mem->baseaddr - addr];
+  log_trace("Try to read memory from addr 0x%04x baseaddr 0x%04x size 0x%04x", addr, mem->baseaddr, mem->size);
+  *data = mem->mem[addr - mem->baseaddr];
   log_debug("Read memory from addr 0x%04x data 0x%02x", addr, *data);
 
   return 0;
