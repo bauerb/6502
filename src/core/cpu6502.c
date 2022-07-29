@@ -757,6 +757,8 @@ uint8_t CPU6502_iny(struct CPU6502 *cpu)
 /* Jump to new location */
 uint8_t CPU6502_jmp(struct CPU6502 *cpu)
 {
+  log_debug("JMP to address <0x%04x>", cpu->addr_abs);
+  cpu->Reg.PC = cpu->addr_abs;
   return 0;
 }
 
