@@ -443,10 +443,10 @@ int CPU6502_clock(struct CPU6502 *cpu)
     uint8_t extra_cycles2 = 0;
 
     cpu->opcode = cpu->read(cpu->bus, cpu->Reg.PC);
+    log_trace("OP <%s> at 0x%04x", opcodes[cpu->opcode].mnemonic, cpu->Reg.PC);
+
     cpu->Reg.PC++;
     cpu->cycles = opcodes[cpu->opcode].cycles;
-
-    log_trace("OP <%s> at 0x%04x", opcodes[cpu->opcode].mnemonic, cpu->Reg.PC);
 
     extra_cycles1 = opcodes[cpu->opcode].addrMode(cpu);
     extra_cycles2 = opcodes[cpu->opcode].instruction(cpu);
@@ -469,12 +469,12 @@ int CPU6502_complete(struct CPU6502 *cpu)
 /*----------------------------------------------------------------------------*/
 int CPU6502_dumpStatus(struct CPU6502 *cpu)
 {
-  log_info("Processor Status");
-  log_info("----------------");
-  log_info(" A: 0x%02x  Y: 0x%02x     X: 0x%02x", cpu->Reg.A, cpu->Reg.Y, cpu->Reg.X);
-  log_info("SP: 0x%02x PC: 0x%04x", cpu->Reg.SP, cpu->Reg.PC, cpu->Reg.X);
-  log_info("Flags: N V - B D I Z C");
-  log_info("       %c %c   %c %c %c %c %c",
+  log_dump("Processor Status\n");
+  log_dump("----------------\n");
+  log_dump(" A: 0x%02x  Y: 0x%02x     X: 0x%02x\n", cpu->Reg.A, cpu->Reg.Y, cpu->Reg.X);
+  log_dump("SP: 0x%02x PC: 0x%04x\n", cpu->Reg.SP, cpu->Reg.PC, cpu->Reg.X);
+  log_dump("Flags: N V - B D I Z C\n");
+  log_dump("       %c %c   %c %c %c %c %c\n",
            (cpu->Reg.PSR.NEGATIVE == 1 ? '1': '0'),
            (cpu->Reg.PSR.OVERFLOW == 1 ? '1': '0'),
            (cpu->Reg.PSR.BRK      == 1 ? '1': '0'),

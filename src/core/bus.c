@@ -106,7 +106,7 @@ uint8_t bus_read(struct Bus *bus, uint16_t addr)
     return 0;
   }
 
-  log_info("Read data 0x%02x from 0x%04x", data, addr);
+  log_trace("Read data 0x%02x from 0x%04x", data, addr);
   return data;
 }
 
@@ -120,7 +120,7 @@ void bus_write(struct Bus *bus, uint16_t addr, uint8_t data)
       log_error("Could not write data 0x%02x to address 0x%04x", data, addr);
     }
 
-    log_info("Write data 0x%02x to 0x%04x", data, addr);
+    log_trace("Write data 0x%02x to 0x%04x", data, addr);
   }
   else if(addr >= 0x8000 && addr <= 0xffff)
   {

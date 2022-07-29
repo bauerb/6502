@@ -11,7 +11,7 @@ struct Memory* memory_create(uint32_t size, uint32_t baseaddr, uint8_t readonly)
 {
   struct Memory *mem = NULL;
 
-  log_debug("Memory: Try to allocate struct Memory");
+  log_trace("Memory: Try to allocate struct Memory");
   mem = malloc(sizeof(struct Memory));
   if(!mem)
   {
@@ -19,7 +19,7 @@ struct Memory* memory_create(uint32_t size, uint32_t baseaddr, uint8_t readonly)
     return NULL;
   }
 
-  log_debug("Memory: Try to allocate 0x%04x bytes of memory", size);
+  log_trace("Memory: Try to allocate 0x%04x bytes of memory", size);
   mem->mem = malloc(sizeof(uint8_t) * size);
   if(!mem->mem)
   {
@@ -28,7 +28,7 @@ struct Memory* memory_create(uint32_t size, uint32_t baseaddr, uint8_t readonly)
     return NULL;
   }
 
-  log_info("Create Memory size 0x%04x and baseaddr 0x%04x", size, baseaddr);
+  log_trace("Create Memory size 0x%04x and baseaddr 0x%04x", size, baseaddr);
 
   memset(mem->mem, 0, size);
   mem->readonly = readonly;
@@ -72,7 +72,7 @@ int memory_readByte(struct Memory* mem, uint32_t addr, uint8_t *data)
   }
 
   *data = mem->mem[addr - mem->baseaddr];
-  log_debug("Read memory from addr 0x%04x data 0x%02x", addr, *data);
+  log_trace("Read memory from addr 0x%04x data 0x%02x", addr, *data);
 
   return 0;
 }
@@ -80,7 +80,7 @@ int memory_readByte(struct Memory* mem, uint32_t addr, uint8_t *data)
 /*----------------------------------------------------------------------------*/
 int memory_writeByte(struct Memory* mem, uint32_t addr, uint8_t data)
 {
-  log_debug("Try to write data 0x%02x to address 0x%04x baseaddr 0x%04x size 0x%04x", data, addr, mem->baseaddr, mem->size);
+  log_trace("Try to write data 0x%02x to address 0x%04x baseaddr 0x%04x size 0x%04x", data, addr, mem->baseaddr, mem->size);
 
   if(mem == NULL)
   {
@@ -99,7 +99,7 @@ int memory_writeByte(struct Memory* mem, uint32_t addr, uint8_t data)
   }
 
   mem->mem[addr - mem->baseaddr] = data;
-  log_debug("Write data 0x%02x to addr 0x%04x", data, addr);
+  log_trace("Write data 0x%02x to addr 0x%04x", data, addr);
 
   return 0;
 }
