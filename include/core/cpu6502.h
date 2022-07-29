@@ -3,6 +3,8 @@
 
 #include <stdint.h>
 
+#include "core/bus.h"
+
 struct CPU6502
 {
   struct {
@@ -39,11 +41,13 @@ struct CPU6502
   uint16_t addr_abs;
   uint16_t addr_rel;
 
-  uint8_t (*read)(uint16_t address);
-  void (*write)(uint16_t address, uint8_t data);
+  struct Bus* bus;
+
+  uint8_t (*read)(struct Bus *bus, uint16_t address);
+  void (*write)(struct Bus *bus, uint16_t address, uint8_t data);
 };
 
-struct CPU6502* CPU6502_create(uint8_t (*read)(uint16_t), void (*write)(uint16_t, uint8_t));
+struct CPU6502* CPU6502_create(struct Bus* bus, uint8_t (*read)(struct Bus*, uint16_t), void (*write)(struct Bus*, uint16_t, uint8_t));
 int CPU6502_destroy(struct CPU6502 **cpu);
 
 int CPU6502_reset(struct CPU6502 *cpu);

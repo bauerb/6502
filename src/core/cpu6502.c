@@ -1,7 +1,9 @@
 #include <stdlib.h>
 
-#include "core/cpu6502.h"
 #include "util/log.h"
+
+#include "core/bus.h"
+#include "core/cpu6502.h"
 
 struct OpCodeLUT
 {
@@ -363,7 +365,7 @@ static struct OpCodeLUT opcodes [] = {
 static uint8_t CPU6502_fetch(struct CPU6502 *cpu);
 
 /*----------------------------------------------------------------------------*/
-struct CPU6502* CPU6502_create(uint8_t (*read)(uint16_t), void (*write)(uint16_t, uint8_t))
+struct CPU6502* CPU6502_create(struct Bus* bus, uint8_t (*read)(struct Bus*, uint16_t), void (*write)(struct Bus*, uint16_t, uint8_t))
 {
   struct CPU6502 *cpu = NULL;
 
@@ -378,7 +380,7 @@ struct CPU6502* CPU6502_create(uint8_t (*read)(uint16_t), void (*write)(uint16_t
 
   cpu->read = read;
   cpu->write = write;
-  CPU6502_reset(cpu);
+  cpu->bus = bus;
 
   return cpu;
 }
@@ -426,8 +428,8 @@ int CPU6502_reset(struct CPU6502 *cpu)
   cpu->addr_abs = 0xFFFC;
   cpu->addr_rel = 0;
 
-  cpu->Reg.PCL = cpu->read(cpu->addr_abs);
-  cpu->Reg.PCH = cpu->read(cpu->addr_abs+1);
+  cpu->Reg.PCL = cpu->read(cpu->bus, cpu->addr_abs);
+  cpu->Reg.PCH = cpu->read(cpu->bus, cpu->addr_abs+1);
 
   return 0;
 }
@@ -440,7 +442,7 @@ int CPU6502_clock(struct CPU6502 *cpu)
     uint8_t extra_cycles1 = 0;
     uint8_t extra_cycles2 = 0;
 
-    cpu->opcode = cpu->read(cpu->Reg.PC);
+    cpu->opcode = cpu->read(cpu->bus, cpu->Reg.PC);
     cpu->Reg.PC++;
     cpu->cycles = opcodes[cpu->opcode].cycles;
 
@@ -489,7 +491,7 @@ uint8_t CPU6502_fetch(struct CPU6502 *cpu)
 {
   if(opcodes[cpu->opcode].addrMode != CPU6502_imp)
   {
-    cpu->fetched = cpu->read(cpu->addr_abs);
+    cpu->fetched = cpu->read(cpu->bus, cpu->addr_abs);
   }
   return cpu->fetched;
 }
@@ -545,9 +547,9 @@ uint8_t CPU6502_abs(struct CPU6502 *cpu)
   uint8_t hi;
   log_trace("Addr mode: Absolute");
 
-  lo = cpu->read(cpu->Reg.PC);
+  lo = cpu->read(cpu->bus, cpu->Reg.PC);
   cpu->Reg.PC++;
-  hi = cpu->read(cpu->Reg.PC);
+  hi = cpu->read(cpu->bus, cpu->Reg.PC);
   cpu->Reg.PC++;
 
   cpu->addr_abs = (hi << 8 ) | lo;
