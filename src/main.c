@@ -1,20 +1,22 @@
 #include <stdio.h>
 
 #include "util/log.h"
+#include "util/tools.h"
 
 #include "core/bus.h"
 
-static void test(struct Bus* bus)
+static void init(struct Bus* bus)
 {
-  memory_writeByte(bus->rom, 0xFFFC, 0x00); // Set reset Vecor to 0x0200
-  memory_writeByte(bus->rom, 0xFFFD, 0x02);
+  log_info("Load RAM from file");
+  memory_loadFromFile(bus->ram, 0x0000, "test.bin", 0x0000, 0x8000);
+  log_info("Load ROM from file");
+  memory_loadFromFile(bus->rom, 0x8000, "test.bin", 0x8000, 0x8000);
 
-  memory_writeByte(bus->ram, 0x0200, 0xA9); // LDA 0x18
-  memory_writeByte(bus->ram, 0x0201, 0xFF); // LDA 0x18
-
-  log_info("RAM DUMP");
+  log_info("RAM DUMP 0x0200 - 0x0220");
   memory_dump(bus->ram, 0x0200, 0x0220);
-  log_info("ROM DUMP");
+  log_info("ROM DUMP 0x8000 - 0x8100");
+  memory_dump(bus->rom, 0x8000, 0x8100);
+  log_info("ROM DUMP 0xFFF0 - 0xFFFF");
   memory_dump(bus->rom, 0xFFF0, 0xFFFF);
 }
 
@@ -24,7 +26,7 @@ int main()
   int i = 0;
 
   bus = bus_create();
-  test(bus);
+  init(bus);
   bus_reset(bus);
 
   for(i=0; i<10;i++)
