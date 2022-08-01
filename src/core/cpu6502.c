@@ -907,7 +907,25 @@ uint8_t CPU6502_rts(struct CPU6502 *cpu)
 /* Substract memory from accumulator with borrow (carry) */
 uint8_t CPU6502_sbc(struct CPU6502 *cpu)
 {
-  return 0;
+  uint16_t temp = 0;
+  uint16_t value = 0;
+
+  CPU6502_fetch(cpu);
+
+  value = cpu->fetched ^ 0x00FF;
+
+  temp = cpu->Reg.A + value + cpu->Reg.PSR.CARRY;
+
+  log_debug("SBC <0x%02x> from A <0x%02x> (C: <0x%02x>)", cpu->fetched, cpu->Reg.A, cpu->Reg.PSR.CARRY);
+
+  if(temp & 0xFF00) cpu->Reg.PSR.CARRY = 1; else cpu->Reg.PSR.CARRY = 0;
+  if((temp & 0xFF00)  == 0) cpu->Reg.PSR.ZERO = 1; else cpu->Reg.PSR.ZERO = 0;
+  if((temp ^ cpu->Reg.A) & (temp ^ value) & 0x0080) cpu->Reg.PSR.OVERFLOW = 1; else cpu->Reg.PSR.OVERFLOW = 0;
+  if(temp & 0x0080) cpu->Reg.PSR.NEGATIVE = 1; else cpu->Reg.PSR.NEGATIVE = 0;
+
+  cpu->Reg.A = 0x00FF & temp;
+
+  return 1;
 }
 
 /* Set carry */
