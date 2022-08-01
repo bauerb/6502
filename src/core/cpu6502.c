@@ -414,7 +414,7 @@ int CPU6502_reset(struct CPU6502 *cpu)
   cpu->Reg.A = 0x0;
   cpu->Reg.Y = 0x0;
   cpu->Reg.X = 0x0;
-  cpu->Reg.SP = 0x0;
+  cpu->Reg.SP = 0xFF;
 
   cpu->Reg.CARRY=0;
   cpu->Reg.ZERO=0;
@@ -865,24 +865,70 @@ uint8_t CPU6502_ora(struct CPU6502 *cpu)
 /* Push accumulator on stack */
 uint8_t CPU6502_pha(struct CPU6502 *cpu)
 {
+  uint16_t addr = 0x0100 + cpu->Reg.SP;
+
+  log_debug("PHA Push A <0x%02x> to STACK <0x%04x>", cpu->Reg.A, addr);
+
+  cpu->write(cpu->bus, addr, cpu->Reg.A);
+
+  cpu->Reg.SP--;
+
   return 0;
 }
 
 /* Push processor status on stack */
 uint8_t CPU6502_php(struct CPU6502 *cpu)
 {
+  uint16_t addr = 0x0100 + cpu->Reg.SP;
+  uint8_t data = 0x00;
+
+  cpu->Reg.BRK = 1;
+  cpu->Reg.NU = 1;
+
+  data = cpu->Reg.PSR;
+
+  log_debug("PHP Push PSR <0x%02x> to STACK <0x%04x>", data, addr);
+
+  cpu->write(cpu->bus, addr, data);
+
+  cpu->Reg.BRK = 0;
+  cpu->Reg.NU = 0;
+
+  cpu->Reg.SP--;
+
   return 0;
 }
 
 /* Pull accumulator from stack */
 uint8_t CPU6502_pla(struct CPU6502 *cpu)
 {
+  uint16_t addr = 0x0000;
+
+  cpu->Reg.SP++;
+  addr = 0x0100 + cpu->Reg.SP;
+  cpu->Reg.A = cpu->read(cpu->bus, addr);
+
+  log_debug("PLA Pull A <0x%02x> from STACK <0x%04x>", cpu->Reg.A, addr);
+
+  if(cpu->Reg.A == 0x00) cpu->Reg.ZERO = 1; else cpu->Reg.ZERO = 0;
+  if(cpu->Reg.A & 0x80) cpu->Reg.NEGATIVE = 1; else cpu->Reg.NEGATIVE = 0;
+
   return 0;
 }
 
 /* Pull processor status from stack */
 uint8_t CPU6502_plp(struct CPU6502 *cpu)
 {
+  uint16_t addr = 0x0000;
+
+  cpu->Reg.SP++;
+  addr = 0x0100 + cpu->Reg.SP;
+  cpu->Reg.PSR = cpu->read(cpu->bus, addr);
+
+  cpu->Reg.NU = 1;
+
+  log_debug("PLP Pull PSR <0x%02x> from STACK <0x%04x>", cpu->Reg.PSR, addr);
+
   return 0;
 }
 
