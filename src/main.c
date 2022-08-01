@@ -45,6 +45,9 @@ int main()
   log_info("RAM DUMP 0x0200 - 0x0220");
   memory_dump(bus->ram, 0x0200, 0x0220);
 
+  log_info("STACK DUMP 0x0100 - 0x0200");
+  memory_dump(bus->ram, 0x0100, 0x0200);
+
   bus_destroy(&bus);
 
   return 0;
