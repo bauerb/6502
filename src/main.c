@@ -25,11 +25,13 @@ int main()
   struct Bus *bus = NULL;
   int i = 0;
 
+  log_set_level(LOG_DEBUG);
+
   bus = bus_create();
   init(bus);
   bus_reset(bus);
 
-  for(i=0; i<10;i++)
+  for(i=0; i<200;i++)
   {
     bus_clock(bus);
   }
