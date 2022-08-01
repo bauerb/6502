@@ -34,6 +34,9 @@ int main()
     bus_clock(bus);
   }
 
+  log_info("RAM DUMP 0x0200 - 0x0220");
+  memory_dump(bus->ram, 0x0200, 0x0220);
+
   bus_destroy(&bus);
 
   return 0;
