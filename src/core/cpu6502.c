@@ -815,6 +815,16 @@ uint8_t CPU6502_jmp(struct CPU6502 *cpu)
 /* Jump to new location saving return */
 uint8_t CPU6502_jsr(struct CPU6502 *cpu)
 {
+  cpu->Reg.PC--;
+
+  cpu->write(cpu->bus, 0x0100 + cpu->Reg.SP, (cpu->Reg.PC >> 8) & 0x00FF);
+  cpu->Reg.SP--;
+  cpu->write(cpu->bus, 0x0100 + cpu->Reg.SP, cpu->Reg.PC & 0x00FF);
+  cpu->Reg.SP--;
+
+  log_debug("JSR Jump to subroutine at <0x%04x>", cpu->addr_abs);
+
+  cpu->Reg.PC = cpu->addr_abs;
   return 0;
 }
 
@@ -953,6 +963,15 @@ uint8_t CPU6502_rti(struct CPU6502 *cpu)
 /* Return from subroutine */
 uint8_t CPU6502_rts(struct CPU6502 *cpu)
 {
+  cpu->Reg.SP++;
+  cpu->Reg.PC = (uint16_t)cpu->read(cpu->bus, 0x0100 + cpu->Reg.SP);
+  cpu->Reg.SP++;
+  cpu->Reg.PC |= (uint16_t)cpu->read(cpu->bus, 0x0100 + cpu->Reg.SP) << 8;
+
+  cpu->Reg.PC++;
+
+  log_debug("RTS Return from subroutine to <0x%04x>", cpu->Reg.PC);
+
   return 0;
 }
 
