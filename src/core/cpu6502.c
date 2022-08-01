@@ -416,14 +416,14 @@ int CPU6502_reset(struct CPU6502 *cpu)
   cpu->Reg.X = 0x0;
   cpu->Reg.SP = 0x0;
 
-  cpu->Reg.PSR.CARRY=0;
-  cpu->Reg.PSR.ZERO=0;
-  cpu->Reg.PSR.IRQB=1;
-  cpu->Reg.PSR.DECIMAL=0;
-  cpu->Reg.PSR.BRK=1;
-  cpu->Reg.PSR.NU=1;
-  cpu->Reg.PSR.OVERFLOW=0;
-  cpu->Reg.PSR.NEGATIVE=0;
+  cpu->Reg.CARRY=0;
+  cpu->Reg.ZERO=0;
+  cpu->Reg.IRQB=1;
+  cpu->Reg.DECIMAL=0;
+  cpu->Reg.BRK=1;
+  cpu->Reg.NU=1;
+  cpu->Reg.OVERFLOW=0;
+  cpu->Reg.NEGATIVE=0;
 
   cpu->cycles = 7;
   cpu->clock_count = 0;
@@ -480,13 +480,13 @@ int CPU6502_dumpStatus(struct CPU6502 *cpu)
   log_dump("SP: 0x%02x PC: 0x%04x\n", cpu->Reg.SP, cpu->Reg.PC, cpu->Reg.X);
   log_dump("Flags: N V - B D I Z C\n");
   log_dump("       %c %c   %c %c %c %c %c\n",
-           (cpu->Reg.PSR.NEGATIVE == 1 ? '1': '0'),
-           (cpu->Reg.PSR.OVERFLOW == 1 ? '1': '0'),
-           (cpu->Reg.PSR.BRK      == 1 ? '1': '0'),
-           (cpu->Reg.PSR.DECIMAL  == 1 ? '1': '0'),
-           (cpu->Reg.PSR.IRQB     == 1 ? '1': '0'),
-           (cpu->Reg.PSR.ZERO     == 1 ? '1': '0'),
-           (cpu->Reg.PSR.CARRY    == 1 ? '1': '0'));
+           (cpu->Reg.NEGATIVE == 1 ? '1': '0'),
+           (cpu->Reg.OVERFLOW == 1 ? '1': '0'),
+           (cpu->Reg.BRK      == 1 ? '1': '0'),
+           (cpu->Reg.DECIMAL  == 1 ? '1': '0'),
+           (cpu->Reg.IRQB     == 1 ? '1': '0'),
+           (cpu->Reg.ZERO     == 1 ? '1': '0'),
+           (cpu->Reg.CARRY    == 1 ? '1': '0'));
 
   return 0;
 }
@@ -610,15 +610,15 @@ uint8_t CPU6502_adc(struct CPU6502 *cpu)
   uint16_t temp;
   CPU6502_fetch(cpu);
 
-  log_debug("ADC Add <0x%02x> to A <0x%02x> (C: <0x%02x>)", cpu->fetched, cpu->Reg.A, cpu->Reg.PSR.CARRY);
+  log_debug("ADC Add <0x%02x> to A <0x%02x> (C: <0x%02x>)", cpu->fetched, cpu->Reg.A, cpu->Reg.CARRY);
 
-  temp = cpu->Reg.A + cpu->fetched + cpu->Reg.PSR.CARRY;
+  temp = cpu->Reg.A + cpu->fetched + cpu->Reg.CARRY;
 
-  if(temp > 0xff) cpu->Reg.PSR.CARRY = 1; else cpu->Reg.PSR.CARRY = 0;
-  if((temp & 0x00FF) == 0) cpu->Reg.PSR.ZERO = 1; else cpu->Reg.PSR.ZERO = 0;
-  if(cpu->Reg.A & 0x80) cpu->Reg.PSR.NEGATIVE = 1; else cpu->Reg.PSR.NEGATIVE = 0;
-  if((~(cpu->Reg.A ^ cpu->fetched) & (cpu->Reg.A ^ temp)) & 0x0080) cpu->Reg.PSR.OVERFLOW = 1; else cpu->Reg.PSR.OVERFLOW = 0;
-  if(temp & 0x80) cpu->Reg.PSR.OVERFLOW = 1; else cpu->Reg.PSR.OVERFLOW = 0;
+  if(temp > 0xff) cpu->Reg.CARRY = 1; else cpu->Reg.CARRY = 0;
+  if((temp & 0x00FF) == 0) cpu->Reg.ZERO = 1; else cpu->Reg.ZERO = 0;
+  if(cpu->Reg.A & 0x80) cpu->Reg.NEGATIVE = 1; else cpu->Reg.NEGATIVE = 0;
+  if((~(cpu->Reg.A ^ cpu->fetched) & (cpu->Reg.A ^ temp)) & 0x0080) cpu->Reg.OVERFLOW = 1; else cpu->Reg.OVERFLOW = 0;
+  if(temp & 0x80) cpu->Reg.OVERFLOW = 1; else cpu->Reg.OVERFLOW = 0;
 
   cpu->Reg.A = 0x00FF & temp;
 
@@ -653,7 +653,7 @@ uint8_t CPU6502_bcs(struct CPU6502 *cpu)
 uint8_t CPU6502_beq(struct CPU6502 *cpu)
 {
 
-  if(cpu->Reg.PSR.ZERO == 1)
+  if(cpu->Reg.ZERO == 1)
   {
     cpu->cycles++;
 
@@ -722,7 +722,7 @@ uint8_t CPU6502_bvs(struct CPU6502 *cpu)
 uint8_t CPU6502_clc(struct CPU6502 *cpu)
 {
   log_debug("CLC Clear Carry Flag");
-  cpu->Reg.PSR.CARRY = 0;
+  cpu->Reg.CARRY = 0;
   return 0;
 }
 
@@ -826,8 +826,8 @@ uint8_t CPU6502_lda(struct CPU6502 *cpu)
 
   log_debug("LDA Load <0x%02x> from addr <0x%04x> into A", cpu->Reg.A, cpu->addr_abs);
 
-  if(cpu->Reg.A == 0x00) cpu->Reg.PSR.ZERO = 1; else cpu->Reg.PSR.ZERO = 0;
-  if(cpu->Reg.A & 0x80) cpu->Reg.PSR.NEGATIVE = 1; else cpu->Reg.PSR.NEGATIVE = 0;
+  if(cpu->Reg.A == 0x00) cpu->Reg.ZERO = 1; else cpu->Reg.ZERO = 0;
+  if(cpu->Reg.A & 0x80) cpu->Reg.NEGATIVE = 1; else cpu->Reg.NEGATIVE = 0;
   
   return 0;
 }
@@ -920,14 +920,14 @@ uint8_t CPU6502_sbc(struct CPU6502 *cpu)
 
   value = cpu->fetched ^ 0x00FF;
 
-  temp = cpu->Reg.A + value + cpu->Reg.PSR.CARRY;
+  temp = cpu->Reg.A + value + cpu->Reg.CARRY;
 
-  log_debug("SBC <0x%02x> from A <0x%02x> (C: <0x%02x>)", cpu->fetched, cpu->Reg.A, cpu->Reg.PSR.CARRY);
+  log_debug("SBC <0x%02x> from A <0x%02x> (C: <0x%02x>)", cpu->fetched, cpu->Reg.A, cpu->Reg.CARRY);
 
-  if(temp & 0xFF00) cpu->Reg.PSR.CARRY = 1; else cpu->Reg.PSR.CARRY = 0;
-  if((temp & 0xFF00)  == 0) cpu->Reg.PSR.ZERO = 1; else cpu->Reg.PSR.ZERO = 0;
-  if((temp ^ cpu->Reg.A) & (temp ^ value) & 0x0080) cpu->Reg.PSR.OVERFLOW = 1; else cpu->Reg.PSR.OVERFLOW = 0;
-  if(temp & 0x0080) cpu->Reg.PSR.NEGATIVE = 1; else cpu->Reg.PSR.NEGATIVE = 0;
+  if(temp & 0xFF00) cpu->Reg.CARRY = 1; else cpu->Reg.CARRY = 0;
+  if((temp & 0xFF00)  == 0) cpu->Reg.ZERO = 1; else cpu->Reg.ZERO = 0;
+  if((temp ^ cpu->Reg.A) & (temp ^ value) & 0x0080) cpu->Reg.OVERFLOW = 1; else cpu->Reg.OVERFLOW = 0;
+  if(temp & 0x0080) cpu->Reg.NEGATIVE = 1; else cpu->Reg.NEGATIVE = 0;
 
   cpu->Reg.A = 0x00FF & temp;
 
@@ -938,7 +938,7 @@ uint8_t CPU6502_sbc(struct CPU6502 *cpu)
 uint8_t CPU6502_sec(struct CPU6502 *cpu)
 {
   log_debug("SEC Set Carry Flag");
-  cpu->Reg.PSR.CARRY = 1;
+  cpu->Reg.CARRY = 1;
   return 0;
 }
 

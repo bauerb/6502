@@ -26,16 +26,19 @@ struct CPU6502
       uint16_t PC;
     };
     uint8_t SP;
-    struct {
-      uint8_t CARRY:1;
-      uint8_t ZERO:1;
-      uint8_t IRQB:1;
-      uint8_t DECIMAL:1;
-      uint8_t BRK:1;
-      uint8_t NU:1;
-      uint8_t OVERFLOW:1;
-      uint8_t NEGATIVE:1;
-    } PSR;
+    union {
+      struct {
+        uint8_t CARRY:1;
+        uint8_t ZERO:1;
+        uint8_t IRQB:1;
+        uint8_t DECIMAL:1;
+        uint8_t BRK:1;
+        uint8_t NU:1;
+        uint8_t OVERFLOW:1;
+        uint8_t NEGATIVE:1;
+      };
+      uint8_t PSR;
+    };
   } Reg;
 
   uint8_t  cycles;
@@ -43,7 +46,6 @@ struct CPU6502
 
   uint8_t  opcode;
   uint8_t  fetched;
-//  uint16_t temp;
   uint16_t addr_abs;
   uint16_t addr_rel;
 
