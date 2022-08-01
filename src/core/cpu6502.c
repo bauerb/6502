@@ -687,6 +687,8 @@ uint8_t CPU6502_bvs(struct CPU6502 *cpu)
 /* Clear carry flag */
 uint8_t CPU6502_clc(struct CPU6502 *cpu)
 {
+  log_debug("CLC Clear Carry Flag");
+  cpu->Reg.PSR.CARRY = 0;
   return 0;
 }
 
