@@ -793,8 +793,8 @@ uint8_t CPU6502_lda(struct CPU6502 *cpu)
 
   log_debug("LDA Load <0x%02x> from addr <0x%04x> into A", cpu->Reg.A, cpu->addr_abs);
 
-  if(cpu->Reg.A == 0x00) cpu->Reg.PSR.ZERO = 1;
-  if(cpu->Reg.A & 0x80) cpu->Reg.PSR.NEGATIVE = 1;
+  if(cpu->Reg.A == 0x00) cpu->Reg.PSR.ZERO = 1; else cpu->Reg.PSR.ZERO = 0;
+  if(cpu->Reg.A & 0x80) cpu->Reg.PSR.NEGATIVE = 1; else cpu->Reg.PSR.NEGATIVE = 0;
   
   return 0;
 }
