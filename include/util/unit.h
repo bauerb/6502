@@ -1,3 +1,9 @@
+/*
+ * Copyright (c) 2022, Bernd Bauer <bernd.bauer@gmx.at>
+ *
+ * SPDX-License-Identifier: BSD-2-Clause
+ */
+
 #ifndef UINT_H
 #define UNIT_H
 

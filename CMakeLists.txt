@@ -1,3 +1,6 @@
+# Copyright (c) 2022, Bernd Bauer <bernd.bauer@gmx.at>
+# SPDX-License-Identifier: BSD-2-Clause
+
 cmake_minimum_required(VERSION 2.8.9)
 project(6502)
 
