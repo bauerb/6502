@@ -424,7 +424,6 @@ int CPU6502_reset(struct CPU6502 *cpu)
 
   cpu->opcode = 0;
   cpu->fetched = 0;
-  cpu->temp = 0;
   cpu->addr_abs = 0xFFFC;
   cpu->addr_rel = 0;
 

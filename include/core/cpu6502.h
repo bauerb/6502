@@ -37,7 +37,7 @@ struct CPU6502
 
   uint8_t  opcode;
   uint8_t  fetched;
-  uint16_t temp;
+//  uint16_t temp;
   uint16_t addr_abs;
   uint16_t addr_rel;
 
