@@ -369,7 +369,7 @@ struct CPU6502* CPU6502_create(struct Bus* bus, uint8_t (*read)(struct Bus*, uin
 {
   struct CPU6502 *cpu = NULL;
 
-  log_debug("Create CPU6502");
+  log_trace("Create CPU6502");
 
   cpu = malloc(sizeof(struct CPU6502));
   if(cpu == NULL)
@@ -388,7 +388,7 @@ struct CPU6502* CPU6502_create(struct Bus* bus, uint8_t (*read)(struct Bus*, uin
 /*----------------------------------------------------------------------------*/
 int CPU6502_destroy(struct CPU6502 **cpu)
 {
-  log_debug("Destroy struct CPU6502");
+  log_trace("Destroy struct CPU6502");
 
   if(*cpu != NULL)
   {
@@ -491,6 +491,7 @@ uint8_t CPU6502_fetch(struct CPU6502 *cpu)
   if(opcodes[cpu->opcode].addrMode != CPU6502_imp)
   {
     cpu->fetched = cpu->read(cpu->bus, cpu->addr_abs);
+    log_trace("Fetch data <0x%02x> from addr <0x%04x>", cpu->fetched, cpu->addr_abs);
   }
   return cpu->fetched;
 }
@@ -789,6 +790,8 @@ uint8_t CPU6502_lda(struct CPU6502 *cpu)
 {
   CPU6502_fetch(cpu);
   cpu->Reg.A = cpu->fetched;
+
+  log_debug("LDA Load <0x%02x> from addr <0x%04x> into A", cpu->Reg.A, cpu->addr_abs);
 
   if(cpu->Reg.A == 0x00) cpu->Reg.PSR.ZERO = 1;
   if(cpu->Reg.A & 0x80) cpu->Reg.PSR.NEGATIVE = 1;
