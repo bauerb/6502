@@ -594,7 +594,22 @@ uint8_t CPU6502_izy(struct CPU6502 *cpu)
 /* Add with Carry */
 uint8_t CPU6502_adc(struct CPU6502 *cpu)
 {
-  return 0;
+  uint16_t temp;
+  CPU6502_fetch(cpu);
+
+  log_debug("ADC Add <0x%02x> to A <0x%02x> (C: <0x%02x>)", cpu->fetched, cpu->Reg.A, cpu->Reg.PSR.CARRY);
+
+  temp = cpu->Reg.A + cpu->fetched + cpu->Reg.PSR.CARRY;
+
+  if(temp > 0xff) cpu->Reg.PSR.CARRY = 1;
+  if((temp & 0x00FF) == 0) cpu->Reg.PSR.ZERO = 1;
+  if(cpu->Reg.A & 0x80) cpu->Reg.PSR.NEGATIVE = 1;
+  if((~(cpu->Reg.A ^ cpu->fetched) & (cpu->Reg.A ^ temp)) & 0x0080) cpu->Reg.PSR.OVERFLOW = 1;
+  if(temp & 0x80) cpu->Reg.PSR.OVERFLOW = 1;
+
+  cpu->Reg.A = 0x00FF & temp;
+
+  return 1;
 }
 
 /* AND */
