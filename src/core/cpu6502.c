@@ -537,6 +537,12 @@ uint8_t CPU6502_zpy(struct CPU6502 *cpu)
 uint8_t CPU6502_rel(struct CPU6502 *cpu)
 {
   log_trace("Addr mode: Relative");
+  cpu->addr_rel = cpu->read(cpu->bus, cpu->Reg.PC);
+  cpu->Reg.PC++;
+  if(cpu->addr_rel & 0x80)
+  {
+    cpu->addr_rel |= 0xFF00;
+  }
   return 0;
 }
 
@@ -640,6 +646,27 @@ uint8_t CPU6502_bcs(struct CPU6502 *cpu)
 /* Branch if equal */
 uint8_t CPU6502_beq(struct CPU6502 *cpu)
 {
+
+  if(cpu->Reg.PSR.ZERO == 1)
+  {
+    cpu->cycles++;
+
+    cpu->addr_abs = cpu->Reg.PC + cpu->addr_rel;
+
+    if((cpu->addr_abs & 0xFF00) != (cpu->Reg.PC & 0xFF00))
+    {
+      cpu->cycles++;
+    }
+ 
+    cpu->Reg.PC = cpu->addr_abs;
+
+    log_debug("BEQ jump to addr <0x%04x>", cpu->Reg.PC);
+
+    return 0;
+  }
+
+  log_debug("BEQ Zero Flag not set; continue");
+
   return 0;
 }
 
