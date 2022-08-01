@@ -901,6 +901,9 @@ uint8_t CPU6502_sei(struct CPU6502 *cpu)
 /* Store accumulator in memory */
 uint8_t CPU6502_sta(struct CPU6502 *cpu)
 {
+  log_debug("STA Store content from A <0x%02x> to addr <0x%04x>", cpu->Reg.A, cpu->addr_abs);
+
+  cpu->write(cpu->bus, cpu->addr_abs, cpu->Reg.A);
   return 0;
 }
 
