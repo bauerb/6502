@@ -886,6 +886,8 @@ uint8_t CPU6502_sbc(struct CPU6502 *cpu)
 /* Set carry */
 uint8_t CPU6502_sec(struct CPU6502 *cpu)
 {
+  log_debug("SEC Set Carry Flag");
+  cpu->Reg.PSR.CARRY = 1;
   return 0;
 }
 
