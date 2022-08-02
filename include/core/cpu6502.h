@@ -43,6 +43,7 @@ struct CPU6502
 
   uint8_t  cycles;
   uint32_t clock_count;
+  uint8_t  finished;
 
   uint8_t  opcode;
   uint8_t  fetched;

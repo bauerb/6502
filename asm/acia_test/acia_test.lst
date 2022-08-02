@@ -1,0 +1,75 @@
+ca65 V2.19 - Git fb8de287b
+Main file   : acia_test.asm
+Current file: acia_test.asm
+
+000000r 1               .debuginfo on
+000000r 1               .listbytes unlimited
+000000r 1               
+000000r 1               ACIA := $8000
+000000r 1               ACIAData := ACIA+0
+000000r 1               ACIAStatus := ACIA+1
+000000r 1               ACIACommand := ACIA+2
+000000r 1               ACIAControl := ACIA+3
+000000r 1               
+000000r 1               CR=13
+000000r 1               LF=10
+000000r 1               
+000000r 1               .segment "ZEROPAGE"
+000000r 1               
+000000r 1               STRNG1:
+000000r 1  xx xx          .res 2
+000002r 1               
+000002r 1               .segment "DATA"
+000000r 1               
+000000r 1               .segment "KERNAL"
+000000r 1               
+000000r 1               .proc main
+000000r 1               
+000000r 1  A9 rr          lda #<Message
+000002r 1  A0 rr          ldy #>Message
+000004r 1  20 rr rr       jsr printString
+000007r 1               
+000007r 1               finish:
+000007r 1  00             brk
+000008r 1               .endproc
+000008r 1               
+000008r 1               .proc printString
+000008r 1               
+000008r 1  85 rr          sta STRNG1
+00000Ar 1  84 rr          sty STRNG1+1
+00000Cr 1  A0 FF          ldy #$FF
+00000Er 1               loop:
+00000Er 1  C8             iny
+00000Fr 1  B1 rr          lda (STRNG1),y
+000011r 1  F0 06          beq finish
+000013r 1  8D 00 80       sta ACIAData
+000016r 1  4C rr rr       jmp loop
+000019r 1               
+000019r 1               finish:
+000019r 1  60             rts
+00001Ar 1               .endproc
+00001Ar 1               
+00001Ar 1               .proc reset
+00001Ar 1  4C rr rr       jmp main
+00001Dr 1               .endproc
+00001Dr 1               
+00001Dr 1               .proc nmi
+00001Dr 1  40             rti
+00001Er 1               .endproc
+00001Er 1               
+00001Er 1               .proc irq
+00001Er 1  40             rti
+00001Fr 1               .endproc
+00001Fr 1               
+00001Fr 1               Message:
+00001Fr 1  44 61 73 20    .byte   "Das ist ein Test"
+000023r 1  69 73 74 20  
+000027r 1  65 69 6E 20  
+00002Br 1  54 65 73 74  
+00002Fr 1  0D 0A 00       .byte   CR,LF,0
+000032r 1               
+000032r 1               .segment "VECTORTBL"
+000000r 1  rr rr        .word nmi
+000002r 1  rr rr        .word reset
+000004r 1  rr rr        .word irq
+000004r 1               

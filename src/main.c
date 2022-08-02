@@ -13,23 +13,20 @@
 
 static void init(struct Bus* bus)
 {
-  log_info("Load RAM from file");
-  memory_loadFromFile(bus->ram, 0x0000, "test.bin", 0x0000, 0x8000);
   log_info("Load ROM from file");
-  memory_loadFromFile(bus->rom, 0x8000, "test.bin", 0x8000, 0x8000);
+  memory_loadFromFile(bus->rom, 0xE000, "kernel.bin", 0x0000, 0x2000);
 
+  log_info("RAM DUMP 0x0000 - 0x00ff");
+  memory_dump(bus->ram, 0x0000, 0x00ff);
   log_info("RAM DUMP 0x0200 - 0x0220");
   memory_dump(bus->ram, 0x0200, 0x0220);
-  log_info("ROM DUMP 0x8000 - 0x8100");
-  memory_dump(bus->rom, 0x8000, 0x8100);
-  log_info("ROM DUMP 0xFFF0 - 0xFFFF");
-  memory_dump(bus->rom, 0xFFF0, 0xFFFF);
+  log_info("ROM DUMP 0xE000 - 0xE100");
+  memory_dump(bus->rom, 0xE000, 0xE100);
 }
 
 int main()
 {
   struct Bus *bus = NULL;
-  int i = 0;
 
   log_set_level(LOG_DEBUG);
 
@@ -37,10 +34,13 @@ int main()
   init(bus);
   bus_reset(bus);
 
-  for(i=0; i<200;i++)
+  do
   {
     bus_clock(bus);
-  }
+  }while(bus_finished(bus) == 0);
+
+  log_info("RAM DUMP 0x0000 - 0x00FF");
+  memory_dump(bus->ram, 0x0000, 0x00FF);
 
   log_info("RAM DUMP 0x0200 - 0x0220");
   memory_dump(bus->ram, 0x0200, 0x0220);

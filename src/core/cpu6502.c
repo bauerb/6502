@@ -5,6 +5,7 @@
  */
 
 #include <stdlib.h>
+#include <stdint.h>
 
 #include "util/log.h"
 
@@ -427,6 +428,7 @@ int CPU6502_reset(struct CPU6502 *cpu)
 
   cpu->cycles = 7;
   cpu->clock_count = 0;
+  cpu->finished = 0;
 
   cpu->opcode = 0;
   cpu->fetched = 0;
@@ -522,6 +524,9 @@ uint8_t CPU6502_imm(struct CPU6502 *cpu)
 uint8_t CPU6502_zpg(struct CPU6502 *cpu)
 {
   log_trace("Addr mode: Zero Page");
+  cpu->addr_abs = cpu->read(cpu->bus, cpu->Reg.PC);
+  cpu->Reg.PC++;
+  cpu->addr_abs &= 0x00FF;
   return 0;
 }
 
@@ -600,7 +605,26 @@ uint8_t CPU6502_izx(struct CPU6502 *cpu)
 /* Indirect Y */
 uint8_t CPU6502_izy(struct CPU6502 *cpu)
 {
+  uint16_t temp = 0;
+  uint16_t lo = 0;
+  uint16_t hi = 0;
+
   log_trace("Addr mode: Indirect Y");
+
+  temp = cpu->read(cpu->bus, cpu->Reg.PC);
+  cpu->Reg.PC++;
+
+  lo = cpu->read(cpu->bus, temp & 0x00FF);
+  hi = cpu->read(cpu->bus, (temp + 1) & 0x00FF);
+
+  cpu->addr_abs = (hi << 8) | lo;
+  cpu->addr_abs += cpu->Reg.Y;
+
+  if((cpu->addr_abs & 0xFF00) != (hi << 8))
+  {
+    return 1;
+  }
+
   return 0;
 }
 
@@ -703,6 +727,10 @@ uint8_t CPU6502_bpl(struct CPU6502 *cpu)
 /* Break */
 uint8_t CPU6502_brk(struct CPU6502 *cpu)
 {
+  log_debug("BRK Break");
+
+  cpu->finished=1;
+
   return 0;
 }
 
@@ -801,6 +829,12 @@ uint8_t CPU6502_inx(struct CPU6502 *cpu)
 /* Increment Y register by one */
 uint8_t CPU6502_iny(struct CPU6502 *cpu)
 {
+  cpu->Reg.Y++;
+
+  log_debug("INY increment Y 0x%02x", cpu->Reg.Y);
+
+  if(cpu->Reg.Y == 0x00) cpu->Reg.ZERO = 1; else cpu->Reg.ZERO = 0;
+  if(cpu->Reg.Y == 0x80) cpu->Reg.NEGATIVE = 1; else cpu->Reg.NEGATIVE = 0;
   return 0;
 }
 
@@ -851,7 +885,14 @@ uint8_t CPU6502_ldx(struct CPU6502 *cpu)
 /* Load Y register with memory */
 uint8_t CPU6502_ldy(struct CPU6502 *cpu)
 {
-  return 0;
+  CPU6502_fetch(cpu);
+  cpu->Reg.Y = cpu->fetched;
+
+  log_debug("LDY Load <0x%02x> from addr <0x%04x> into Y", cpu->Reg.Y, cpu->addr_abs);
+
+  if(cpu->Reg.Y == 0x00) cpu->Reg.ZERO = 1; else cpu->Reg.ZERO = 0;
+  if(cpu->Reg.Y == 0x80) cpu->Reg.NEGATIVE = 1; else cpu->Reg.NEGATIVE = 0;
+  return 1;
 }
 
 /* Logical shift one CPU6502_bit right memory or accumulator */
@@ -1037,6 +1078,9 @@ uint8_t CPU6502_stx(struct CPU6502 *cpu)
 /* Store Y register in memory */
 uint8_t CPU6502_sty(struct CPU6502 *cpu)
 {
+  log_debug("STY Store content from Y <0x%02x> to addr <0x%04x>", cpu->Reg.Y, cpu->addr_abs);
+
+  cpu->write(cpu->bus, cpu->addr_abs, cpu->Reg.Y);
   return 0;
 }
 
@@ -1079,5 +1123,6 @@ uint8_t CPU6502_tya(struct CPU6502 *cpu)
 /* Illegal OpCode */
 uint8_t CPU6502_xxx(struct CPU6502 *cpu)
 {
+  log_error("Illegal opcode 0x%02x at address 0x%04x", cpu->opcode, cpu->Reg.PC);
   return 0;
 }

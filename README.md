@@ -1,0 +1,11 @@
+Memory Map
+==========
+
+0x0000 - 0x00FF : ZP (256 Bytes)
+0x0100 - 0x01FF : SP (256 Bytes)
+0x0200 - 0x7FFF : RAM (31,5 KBytes)
+0x8000 - 0x81FF : IO (512 Bytes)
+0x8200 - 0x8FFF : FREE (3,5 KBytes)
+0x9000 - 0xBFFF : FREE (12 KBytes)
+0xC000 - 0xDFFF : BASIC (8 KBytes)
+0xE000 - 0xFFFF : Kernel (8 KBytes)
