@@ -29,7 +29,6 @@ static void init(struct Bus* bus)
 int main()
 {
   struct Bus *bus = NULL;
-  int i = 0;
 
   log_set_level(LOG_DEBUG);
 
@@ -37,10 +36,10 @@ int main()
   init(bus);
   bus_reset(bus);
 
-  for(i=0; i<200;i++)
+  do
   {
     bus_clock(bus);
-  }
+  }while(bus_is_set_to_stop(bus) != 1);
 
   log_info("RAM DUMP 0x0200 - 0x0220");
   memory_dump(bus->ram, 0x0200, 0x0220);

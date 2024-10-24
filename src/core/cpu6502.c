@@ -450,6 +450,7 @@ int CPU6502_clock(struct CPU6502 *cpu)
     cpu->opcode = cpu->read(cpu->bus, cpu->Reg.PC);
     log_trace("OP <%s> at 0x%04x", opcodes[cpu->opcode].mnemonic, cpu->Reg.PC);
 
+    cpu->Reg.PC_old = cpu->Reg.PC;
     cpu->Reg.PC++;
     cpu->cycles = opcodes[cpu->opcode].cycles;
 
@@ -808,6 +809,11 @@ uint8_t CPU6502_iny(struct CPU6502 *cpu)
 uint8_t CPU6502_jmp(struct CPU6502 *cpu)
 {
   log_debug("JMP to address <0x%04x>", cpu->addr_abs);
+  if(cpu->Reg.PC_old == cpu->addr_abs)
+  {
+    log_info("JMP to same address. Stop Emulator...");
+    bus_set_to_stop(cpu->bus);
+  }
   cpu->Reg.PC = cpu->addr_abs;
   return 0;
 }

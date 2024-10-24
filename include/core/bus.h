@@ -17,6 +17,7 @@ struct Bus
   struct Memory *ram;
   struct Memory *rom;
   struct CPU6502 *cpu;
+  uint8_t stop;
 };
 
 struct Bus* bus_create();
@@ -24,5 +25,7 @@ int bus_destroy(struct Bus** bus);
 
 int bus_reset(struct Bus* bus);
 int bus_clock(struct Bus* bus);
+int bus_is_set_to_stop(struct Bus* bus);
+int bus_set_to_stop(struct Bus* bus);
 
 #endif /* BUS_H */

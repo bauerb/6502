@@ -31,6 +31,7 @@ struct Bus* bus_create()
   bus->ram = NULL;
   bus->rom = NULL;
   bus->cpu = NULL;
+  bus->stop = 0;
 
   log_info("Create RAM");
   bus->ram = memory_create(0x8000, 0x0000, 0);
@@ -132,4 +133,17 @@ void bus_write(struct Bus *bus, uint16_t addr, uint8_t data)
   {
     log_error("Could not write data 0x%02x to ROM addr 0x%04x", data, addr);
   }
+}
+
+/*----------------------------------------------------------------------------*/
+int bus_is_set_to_stop(struct Bus* bus)
+{
+  return bus->stop;
+}
+
+/*----------------------------------------------------------------------------*/
+int bus_set_to_stop(struct Bus* bus)
+{
+  bus->stop = 1;
+  return 0;
 }

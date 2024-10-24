@@ -25,6 +25,7 @@ struct CPU6502
       };
       uint16_t PC;
     };
+    uint16_t PC_old;
     uint8_t SP;
     union {
       struct {
